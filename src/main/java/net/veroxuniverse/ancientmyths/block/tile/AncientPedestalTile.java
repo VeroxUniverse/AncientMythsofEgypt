@@ -89,9 +89,9 @@ public class AncientPedestalTile extends BlockEntity implements WorldlyContainer
     @Override
     public ItemStack removeItemNoUpdate(int i) {
         if (i == 0) {
-            ItemStack crystal = this.item;
+            ItemStack item1 = this.item;
             this.item = ItemStack.EMPTY;
-            return crystal;
+            return item1;
         } else {
             return ItemStack.EMPTY;
         }
