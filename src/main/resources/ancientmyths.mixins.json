@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "net.veroxuniverse.ancientmyths.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "ancientmyths.mixins.refmap.json",
+  "mixins": [
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
