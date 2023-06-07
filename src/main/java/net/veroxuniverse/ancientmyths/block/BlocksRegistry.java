@@ -33,8 +33,13 @@ public class BlocksRegistry {
                     .strength(4f).requiresCorrectToolForDrops()));
 
     public static final RegistryObject<Block> ANCIENT_STONE = registerBlock("ancient_stone",
-            () -> new DropExperienceBlock(BlockBehaviour.Properties.of(Material.STONE)
-                    .strength(4f).requiresCorrectToolForDrops(), UniformInt.of(3, 7)), CustomCreativeTabs.ANCIENT_MYTHS_TAB);
+            () -> new Block(BlockBehaviour.Properties.of(Material.STONE)
+                    .strength(4f).requiresCorrectToolForDrops()), CustomCreativeTabs.ANCIENT_MYTHS_TAB);
+
+    public static final RegistryObject<Block> ANCIENT_COBBLESTONE = registerBlock("ancient_cobblestone",
+            () -> new Block(BlockBehaviour.Properties.of(Material.STONE)
+                    .strength(4f).requiresCorrectToolForDrops()), CustomCreativeTabs.ANCIENT_MYTHS_TAB);
+
 
     //Registry Methods
 

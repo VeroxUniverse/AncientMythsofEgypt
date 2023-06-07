@@ -14,6 +14,10 @@ import javax.annotation.Nullable;
 
 public class AncientPedestalRenderer extends GeoBlockRenderer<AncientPedestalTile> {
 
+    MultiBufferSource buffer;
+    AncientPedestalTile tile;
+    ResourceLocation text;
+
     public AncientPedestalRenderer(BlockEntityRendererProvider.Context rendererDispatcherIn) {
         super(rendererDispatcherIn, new AncientPedestalModel());
     }
@@ -24,4 +28,5 @@ public class AncientPedestalRenderer extends GeoBlockRenderer<AncientPedestalTil
                                     int packedLightIn, ResourceLocation textureLocation) {
         return RenderType.entityTranslucent(getTextureLocation(animatable));
     }
+
 }

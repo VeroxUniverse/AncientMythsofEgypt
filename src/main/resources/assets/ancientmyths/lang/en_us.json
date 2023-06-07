@@ -1,5 +1,9 @@
 {
   "block.ancientmyths.ancient_pedestal": "Ancient Pedestal",
+  "block.ancientmyths.ancient_stone": "Ancient Stone",
+  "block.ancientmyths.ancient_cobblestone": "Ancient Cobblestone",
+
+  "item.ancientmyths.amber": "Amber",
 
   "itemGroup.ancient_myths_tab": "Ancient Myths"
 }
