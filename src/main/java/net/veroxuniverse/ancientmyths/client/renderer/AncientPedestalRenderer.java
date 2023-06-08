@@ -1,7 +1,9 @@
 package net.veroxuniverse.ancientmyths.client.renderer;
 
+import com.hollingsworth.arsnouveau.client.ClientInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -34,6 +36,7 @@ public class AncientPedestalRenderer extends GeoBlockRenderer<AncientPedestalTil
     @Override
     public void renderRecursively(GeoBone bone, PoseStack stack, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
         if (bone.getName().equals("floating_item") && tile.getStack() != null) {
+            float offsetY = (float)Math.sin((double)((float)ClientInfo.ticksInGame / 8.0F)) * 0.06F;
 
             double x = tile.getBlockPos().getX();
             double y = tile.getBlockPos().getY();
@@ -43,8 +46,9 @@ public class AncientPedestalRenderer extends GeoBlockRenderer<AncientPedestalTil
             }
             stack.pushPose();
             RenderUtils.translateMatrixToBone(stack, bone);
-            stack.translate(0, +1.1, 0);
+            stack.translate(0, 1.1 + offsetY, 0);
             stack.scale(0.75f, 0.75f, 0.75f);
+            stack.mulPose(Vector3f.YP.rotationDegrees(((float) ClientInfo.ticksInGame) * 3f));
             ItemStack itemstack = tile.renderEntity.getItem();
             Minecraft.getInstance().getItemRenderer().renderStatic(itemstack, ItemTransforms.TransformType.GROUND, packedLightIn, OverlayTexture.NO_OVERLAY, stack, this.buffer, (int) tile.getBlockPos().asLong());
             stack.popPose();
