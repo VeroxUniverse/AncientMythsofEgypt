@@ -134,39 +134,6 @@ public class AncientPedestal extends BaseEntityBlock implements SimpleWaterlogge
         return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
-
-    @Override
-    public void render(AncientPedestalTile blockEntity, float partialTicks, PoseStack poseStack,
-                       MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
-        blockEntity.itemStackHandler.ifPresent(handler -> {
-            ItemStack stack = handler.getStackInSlot(0);
-            long time = blockEntity.getLevel().getGameTime();
-            poseStack.pushPose();
-
-            //slowly bob up and down following a sine
-            double offset = Math.sin((time - blockEntity.lastChangeTime + partialTicks) / 16) * 0.5f + 0.5f; // * 0.5f + 0.5f;  move sine between 0.0-1.0
-            offset = offset / 4.0f; //reduce amplitude
-            poseStack.translate(0.5, 0.6 + offset, 0.5);
-
-            //use system time to become independent of game time
-            long systemTime = System.currentTimeMillis();
-            //rotate item slowly around y axis
-            float angle = (systemTime / 16) % 360;
-            poseStack.mulPose(Vector3f.YP.rotationDegrees(angle));
-
-            //Fixed scale
-            float scale = getScale(stack) * 0.5f;
-            poseStack.scale(scale, scale, scale);
-
-            ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
-            BakedModel model = itemRenderer.getModel(stack, blockEntity.getLevel(), null, 0);
-            itemRenderer.render(stack, ItemTransforms.TransformType.FIXED, true, poseStack, buffer,
-                    combinedLight, combinedOverlay, model);
-
-            poseStack.popPose();
-        });
-    }
-
     public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         BlockEntity tileentity = worldIn.getBlockEntity(pos);
         if (tileentity instanceof AncientPedestalTile) {

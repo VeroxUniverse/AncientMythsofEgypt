@@ -24,12 +24,12 @@ import software.bernie.geckolib3.util.GeckoLibUtil;
 
 public class AncientPedestalTile extends BlockEntity implements WorldlyContainer, IAnimatable {
 
-    protected ItemStack stack = ItemStack.EMPTY;
+    protected ItemStack item;
     public ItemEntity renderEntity;
 
-
     private static final AnimationBuilder IDLE = new AnimationBuilder().addAnimation("idle", ILoopType.EDefaultLoopTypes.LOOP);
-    ItemStack item;
+
+    //ItemStack item;
     private final AnimationFactory FACTORY = GeckoLibUtil.createFactory(this);
 
     public AncientPedestalTile(BlockPos pWorldPosition, BlockState pBlockState) {
@@ -45,19 +45,18 @@ public class AncientPedestalTile extends BlockEntity implements WorldlyContainer
             return PlayState.CONTINUE;
         }));
     }
-
     @Override
-    public int[] getSlotsForFace(Direction pSide) {
+    public int @NotNull [] getSlotsForFace(@NotNull Direction pSide) {
         return new int[0];
     }
 
     @Override
-    public boolean canPlaceItemThroughFace(int pIndex, ItemStack pItemStack, @Nullable Direction pDirection) {
+    public boolean canPlaceItemThroughFace(int pIndex, @NotNull ItemStack pItemStack, @Nullable Direction pDirection) {
         return false;
     }
 
     @Override
-    public boolean canTakeItemThroughFace(int pIndex, ItemStack pStack, Direction pDirection) {
+    public boolean canTakeItemThroughFace(int pIndex, @NotNull ItemStack pStack, @NotNull Direction pDirection) {
         return false;
     }
 
@@ -72,12 +71,16 @@ public class AncientPedestalTile extends BlockEntity implements WorldlyContainer
     }
 
     @Override
-    public ItemStack getItem(int i) {
+    public @NotNull ItemStack getItem(int i) {
         return i == 0 ? this.item : ItemStack.EMPTY;
     }
 
+    public ItemStack getItemStack() {
+        return this.item;
+    }
+
     @Override
-    public ItemStack removeItem(int i, int j) {
+    public @NotNull ItemStack removeItem(int i, int j) {
         ItemStack item = this.removeItemNoUpdate(i);
         this.update(j);
         return item;
@@ -92,7 +95,7 @@ public class AncientPedestalTile extends BlockEntity implements WorldlyContainer
     }
 
     @Override
-    public ItemStack removeItemNoUpdate(int i) {
+    public @NotNull ItemStack removeItemNoUpdate(int i) {
         if (i == 0) {
             ItemStack item1 = this.item;
             this.item = ItemStack.EMPTY;
@@ -131,7 +134,7 @@ public class AncientPedestalTile extends BlockEntity implements WorldlyContainer
 
     }
 
-    public CompoundTag getUpdateTag() {
+    public @NotNull CompoundTag getUpdateTag() {
         CompoundTag tag = new CompoundTag();
         this.saveAdditional(tag);
         return tag;
