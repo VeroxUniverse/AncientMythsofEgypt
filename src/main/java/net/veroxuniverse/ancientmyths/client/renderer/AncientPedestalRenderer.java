@@ -33,17 +33,17 @@ public class AncientPedestalRenderer extends GeoBlockRenderer<AncientPedestalTil
 
     @Override
     public void renderRecursively(GeoBone bone, PoseStack stack, VertexConsumer bufferIn, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float alpha) {
-        if (bone.getName().equals("floating_item") && tile.getItemStack() != null) {
+        if (bone.getName().equals("floating_item") && tile.getStack() != null) {
 
             double x = tile.getBlockPos().getX();
             double y = tile.getBlockPos().getY();
             double z = tile.getBlockPos().getZ();
-            if (tile.renderEntity == null || !ItemStack.matches(tile.renderEntity.getItem(), tile.getItemStack())) {
-                tile.renderEntity = new ItemEntity(Objects.requireNonNull(tile.getLevel()), x, y, z, tile.getItemStack());
+            if (tile.renderEntity == null || !ItemStack.matches(tile.renderEntity.getItem(), tile.getStack())) {
+                tile.renderEntity = new ItemEntity(Objects.requireNonNull(tile.getLevel()), x, y, z, tile.getStack());
             }
             stack.pushPose();
             RenderUtils.translateMatrixToBone(stack, bone);
-            stack.translate(0, +0.35, 0);
+            stack.translate(0, +1.1, 0);
             stack.scale(0.75f, 0.75f, 0.75f);
             ItemStack itemstack = tile.renderEntity.getItem();
             Minecraft.getInstance().getItemRenderer().renderStatic(itemstack, ItemTransforms.TransformType.GROUND, packedLightIn, OverlayTexture.NO_OVERLAY, stack, this.buffer, (int) tile.getBlockPos().asLong());

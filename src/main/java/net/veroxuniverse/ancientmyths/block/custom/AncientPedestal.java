@@ -1,41 +1,42 @@
 package net.veroxuniverse.ancientmyths.block.custom;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.resources.model.BakedModel;
+import com.hollingsworth.arsnouveau.common.block.ModBlock;
+import com.hollingsworth.arsnouveau.common.block.tile.ArcanePedestalTile;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.Containers;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.veroxuniverse.ancientmyths.block.BlocksEntitiesRegistry;
-import net.veroxuniverse.ancientmyths.block.BlocksRegistry;
 import net.veroxuniverse.ancientmyths.block.tile.AncientPedestalTile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
-public class AncientPedestal extends BaseEntityBlock implements SimpleWaterloggedBlock {
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
+
+public class AncientPedestal extends ModBlock implements EntityBlock, SimpleWaterloggedBlock {
 
     public AncientPedestal(Properties properties) {
         super(properties);
@@ -77,50 +78,85 @@ public class AncientPedestal extends BaseEntityBlock implements SimpleWaterlogge
             Block.box(7, 7.5, 7, 9, 9.5, 9)
     ).reduce((v1, v2) -> Shapes.join(v1, v2, BooleanOp.OR)).get();
 
-    public VoxelShape getShape(BlockState blockState, BlockGetter blockGetter, BlockPos blockPos, CollisionContext context) {
+    public @NotNull VoxelShape getShape(BlockState blockState, BlockGetter blockGetter, BlockPos blockPos, CollisionContext context) {
         return SHAPE;
     }
 
-    public boolean mayPlaceOn(BlockState groundState, BlockGetter worldIn, BlockPos pos) {
-        return !groundState.is(BlocksRegistry.ANCIENT_PEDESTAL.get());
+    @Override
+    public @NotNull InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+        if (handIn != InteractionHand.MAIN_HAND)
+            return InteractionResult.PASS;
+        if (!world.isClientSide && world.getBlockEntity(pos) instanceof AncientPedestalTile tile) {
+            if (tile.getStack() != null && player.getItemInHand(handIn).isEmpty()) {
+                ItemEntity item = new ItemEntity(world, player.getX(), player.getY(), player.getZ(), tile.getStack());
+                world.addFreshEntity(item);
+                tile.setStack(ItemStack.EMPTY);
+            } else if (!player.getInventory().getSelected().isEmpty()) {
+                if (tile.getStack() != null) {
+                    ItemEntity item = new ItemEntity(world, player.getX(), player.getY(), player.getZ(), tile.getStack());
+                    world.addFreshEntity(item);
+                }
+                tile.setStack(player.getInventory().removeItem(player.getInventory().selected, 1));
+            }
+            world.sendBlockUpdated(pos, state, state, 2);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public boolean canSurvive(BlockState state, LevelReader levelReader, BlockPos pos) {
-        BlockPos blockpos = pos.below();
-        BlockState groundState = levelReader.getBlockState(blockpos);
-        return this.mayPlaceOn(groundState, levelReader, blockpos);
+    protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
+        builder.add(WATERLOGGED);
     }
 
-    public InteractionResult use(@NotNull BlockState state, Level worldIn, @NotNull BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        ItemStack heldItem = player.getItemInHand(handIn);
-        if (!worldIn.isClientSide && worldIn.getBlockEntity(pos) instanceof AncientPedestalTile ancientPedestalTile && (!player.isShiftKeyDown() && heldItem.getItem() != this.asItem())) {
-            if (handIn != InteractionHand.MAIN_HAND) {
-                return InteractionResult.PASS;
-            }
-            ItemStack stack = heldItem.copy();
-            stack.setCount(1);
-            if(ancientPedestalTile.getItem(0).isEmpty()){
-                ancientPedestalTile.setItem(0, stack);
-                if(!player.isCreative()){
-                    heldItem.shrink(1);
-                }
-                return InteractionResult.SUCCESS;
-            }else{
-                if(!player.isCreative()){
-                    popResource(worldIn, pos, ancientPedestalTile.getItem(0).copy());
-                }
-                ancientPedestalTile.setItem(0, ItemStack.EMPTY);
-                if (heldItem.getItem() != null) {
-                    ancientPedestalTile.setItem(0, stack);
-                    if(!player.isCreative()){
-                        heldItem.shrink(1);
-                    }
-                }
-                return InteractionResult.SUCCESS;
+    @Override
+    public @NotNull FluidState getFluidState(BlockState state) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : Fluids.EMPTY.defaultFluidState();
+    }
+
+    @NotNull
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        FluidState fluidState = context.getLevel().getFluidState(context.getClickedPos());
+        return this.defaultBlockState().setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
+    }
+
+    @Override
+    public @NotNull BlockState updateShape(BlockState stateIn, @NotNull Direction side, @NotNull BlockState facingState, @NotNull LevelAccessor worldIn, @NotNull BlockPos currentPos, @NotNull BlockPos facingPos) {
+        if (stateIn.getValue(WATERLOGGED)) {
+            worldIn.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(worldIn));
+        }
+        return stateIn;
+    }
+
+    @Override
+    public boolean hasAnalogOutputSignal(@NotNull BlockState state) {
+        return true;
+    }
+
+    @Override
+    public int getAnalogOutputSignal(@NotNull BlockState blockState, Level worldIn, @NotNull BlockPos pos) {
+        ArcanePedestalTile tile = (ArcanePedestalTile) worldIn.getBlockEntity(pos);
+        if (tile == null || tile.getStack().isEmpty()) return 0;
+        return 15;
+    }
+
+    @Override
+    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, @NotNull BlockPos pFromPos, boolean pIsMoving) {
+        super.neighborChanged(pState, pLevel, pPos, pBlock, pFromPos, pIsMoving);
+        if (!pLevel.isClientSide && pLevel.getBlockEntity(pPos) instanceof ArcanePedestalTile tile) {
+            if(tile.hasSignal != pLevel.hasNeighborSignal(pPos)) {
+                tile.hasSignal = !tile.hasSignal;
+                tile.updateBlock();
             }
         }
-        return InteractionResult.PASS;
+    }
+
+    @Override
+    public void playerWillDestroy(@NotNull Level worldIn, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull Player player) {
+        super.playerWillDestroy(worldIn, pos, state, player);
+        if (worldIn.getBlockEntity(pos) instanceof AncientPedestalTile tile && tile.getStack() != null) {
+            worldIn.addFreshEntity(new ItemEntity(worldIn, pos.getX(), pos.getY(), pos.getZ(), tile.getStack()));
+        }
     }
 
     @Nullable
@@ -134,13 +170,5 @@ public class AncientPedestal extends BaseEntityBlock implements SimpleWaterlogge
         return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        BlockEntity tileentity = worldIn.getBlockEntity(pos);
-        if (tileentity instanceof AncientPedestalTile) {
-            Containers.dropContents(worldIn, pos, (AncientPedestalTile) tileentity);
-            worldIn.updateNeighbourForOutputSignal(pos, this);
-        }
-        super.onRemove(state, worldIn, pos, newState, isMoving);
-    }
 
 }
